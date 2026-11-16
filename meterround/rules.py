@@ -33,6 +33,10 @@ def evaluate(db_path):
                 start=at(batch['start']);end=at(batch['end']);margin=timedelta(hours=batch['window_hours'])
                 if not start-margin<=t<=end+margin:problems.append(('outside_window',r['id']))
             if len(rr)<2:problems.append(('missing_read',None))
+            else:
+                start=at(batch['start']);end=at(batch['end']);margin=timedelta(hours=batch['window_hours'])
+                if abs(at(rr[0]['at'])-start)>margin or abs(at(rr[-1]['at'])-end)>margin:
+                    problems.append(('missing_boundary',None))
             for prev,curr in zip(rr,rr[1:]):
                 start,end=at(prev['at']),at(curr['at'])
                 if end<=start:problems.append(('reverse',curr['id']));continue

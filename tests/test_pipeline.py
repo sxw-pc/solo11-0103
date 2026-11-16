@@ -50,3 +50,6 @@ def test_rollover(tmp_path):
 def test_device_gap_blocks_settlement(tmp_path):
     db=setup(tmp_path);src=tmp_path/'gap.csv';src.write_text((FIX/'readings.csv').read_text().replace('H1,2,','H1,3,'),encoding='utf-8');ingest(src,db)
     assert evaluate(db)['A-01']=='待核'
+def test_midperiod_readings_not_settled(tmp_path):
+    db=setup(tmp_path);src=tmp_path/'mid.csv';src.write_text((FIX/'readings.csv').read_text().replace('2026-01-01','2026-01-10').replace('2026-02-01','2026-01-20'),encoding='utf-8');ingest(src,db)
+    assert evaluate(db)['A-01']=='待核'
