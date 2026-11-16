@@ -9,6 +9,8 @@ def span(row,t): return at(row['start'])<=t<at(row['end'])
 def evaluate(db_path):
     db=connect(db_path);out={}
     with db:
+        run_id=db.execute("INSERT INTO run(status,started_at) VALUES ('待接收',CURRENT_TIMESTAMP)").lastrowid
+        db.execute("UPDATE run SET status='已校验' WHERE id=?",(run_id,))
         db.execute('DELETE FROM decision')
         db.execute("DELETE FROM issue WHERE code IN ('outside_window','assignment_conflict','missing_read','reverse','rollover_ambiguous','replacement_gap','multiplier_gap','zero_usage','spike','sequence_gap')")
         readings=[dict(r) for r in db.execute('SELECT * FROM reading')]
@@ -68,4 +70,5 @@ def evaluate(db_path):
             status='可结算' if not problems else '待核'
             detail=json.dumps({'segments':segments,'issues':[x[0] for x in problems]},ensure_ascii=False)
             db.execute('INSERT INTO decision VALUES (?,?,?,?,?)',(subject,status,total if segments else None,detail,VERSION));out[subject]=status
+        db.execute("UPDATE run SET status=CASE WHEN EXISTS(SELECT 1 FROM decision WHERE status<>'可结算') THEN '待核' ELSE '已判定' END,ended_at=CURRENT_TIMESTAMP WHERE id=?",(run_id,))
     db.close();return out

@@ -33,7 +33,7 @@ def ingest(csv_path,db_path):
                 if not db.execute('SELECT 1 FROM slot WHERE id=?',(slot,)).fetchone():
                     db.execute('INSERT INTO issue(code,subject,detail) VALUES (?,?,?)',('unknown_slot',slot,f'line {line}'))
                     continue
-                db.execute('INSERT INTO reading(source_id,line_no,device,seq,slot,meter,at,value,raw,sha256) VALUES (?,?,?,?,?,?,?,?,?,?)',(sid,line,device,seq,slot,meter,date,value,rawline,h));count+=1
+                eid=db.execute('INSERT INTO reading(source_id,line_no,device,seq,slot,meter,at,value,raw,sha256) VALUES (?,?,?,?,?,?,?,?,?,?)',(sid,line,device,seq,slot,meter,date,value,rawline,h)).lastrowid;db.execute('INSERT INTO evidence(reading_id,source_sha256,payload_sha256,role) VALUES (?,?,?,?)',(eid,digest,h,'reading'));count+=1
             except (KeyError,ValueError,TypeError) as e:
                 db.execute('INSERT INTO issue(code,subject,detail) VALUES (?,?,?)',('parse_error',str(line),str(e)))
     db.close();return {'imported':count,'duplicate_file':False}
