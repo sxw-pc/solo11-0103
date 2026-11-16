@@ -4,17 +4,22 @@ import tempfile
 from pathlib import Path
 from .store import connect
 from .ingest import ingest
-from .rules import evaluate
+from .rules import evaluate,RULES
 from .report import report
+
+TABLES=[('batch',['id','start','end','window_hours','spike_limit','rollover_rule']),('slot',['id','batch_id']),('assignment',['slot','meter','start','end','capacity']),('multiplier',['slot','start','end','value']),('replacement',['slot','old_meter','new_meter','old_final','new_initial','at'])]
+DEFAULTS={'batch':{'rollover_rule':'single'}}
 
 def initialize(db_path,config):
     conf=json.loads(Path(config).read_text(encoding='utf-8'))
+    for b in conf.get('batch',[]):
+        if b.get('rollover_rule','single') not in RULES:raise ValueError('unknown_rollover_rule')
     db=connect(db_path)
     with db:
-        for table,columns in [('batch',['id','start','end','window_hours','spike_limit']),('slot',['id','batch_id']),('assignment',['slot','meter','start','end','capacity']),('multiplier',['slot','start','end','value']),('replacement',['slot','old_meter','new_meter','old_final','new_initial','at'])]:
+        for table,columns in TABLES:
             for item in conf.get(table,[]):
                 marks=','.join('?' for _ in columns)
-                db.execute(f'INSERT OR IGNORE INTO {table}({",".join(columns)}) VALUES ({marks})',[item[k] for k in columns])
+                db.execute(f'INSERT OR IGNORE INTO {table}({",".join(columns)}) VALUES ({marks})',[item.get(k,DEFAULTS.get(table,{}).get(k)) for k in columns])
     db.close()
 
 def demo(workdir=None):

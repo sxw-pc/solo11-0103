@@ -3,7 +3,7 @@ from pathlib import Path
 
 SCHEMA="""
 PRAGMA foreign_keys=ON;
-CREATE TABLE IF NOT EXISTS batch(id TEXT PRIMARY KEY,start TEXT NOT NULL,end TEXT NOT NULL,window_hours INTEGER NOT NULL,spike_limit REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS batch(id TEXT PRIMARY KEY,start TEXT NOT NULL,end TEXT NOT NULL,window_hours INTEGER NOT NULL,spike_limit REAL NOT NULL,rollover_rule TEXT NOT NULL DEFAULT 'single');
 CREATE TABLE IF NOT EXISTS source(id INTEGER PRIMARY KEY,name TEXT NOT NULL,sha256 TEXT NOT NULL UNIQUE,raw BLOB NOT NULL);
 CREATE TABLE IF NOT EXISTS slot(id TEXT PRIMARY KEY,batch_id TEXT NOT NULL REFERENCES batch(id));
 CREATE TABLE IF NOT EXISTS assignment(slot TEXT NOT NULL REFERENCES slot(id),meter TEXT NOT NULL,start TEXT NOT NULL,end TEXT NOT NULL,capacity REAL NOT NULL,PRIMARY KEY(slot,meter,start));
@@ -18,4 +18,6 @@ CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY, status TEXT NOT NULL CHEC
 def connect(path):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
     db=sqlite3.connect(path);db.row_factory=sqlite3.Row;db.executescript(SCHEMA)
+    if 'rollover_rule' not in [r[1] for r in db.execute('PRAGMA table_info(batch)')]:
+        db.execute("ALTER TABLE batch ADD COLUMN rollover_rule TEXT NOT NULL DEFAULT 'single'");db.commit()
     return db
