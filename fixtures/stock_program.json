@@ -1,0 +1,63 @@
+{
+  "batch_id": "replacement-round",
+  "planned_at": "2026-02-02T08:00:00Z",
+  "stock": [
+    {
+      "serial": "NEW-01",
+      "model": "T1",
+      "capacity": 10000,
+      "certificate_file": "NEW-01.txt",
+      "certificate_sha256": "12fbe4160df9c689cb64cefa359a8ae2a998f9d4535bc1b7b3ac51c4b59349c3",
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_to": "2027-01-01T00:00:00Z"
+    },
+    {
+      "serial": "NEW-02",
+      "model": "T1",
+      "capacity": 10000,
+      "certificate_file": "NEW-02.txt",
+      "certificate_sha256": "9b76f0837468cfc4433e0173776799caff8fc4908f0bca6258366352ed186833",
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_to": "2027-01-01T00:00:00Z"
+    }
+  ],
+  "required_model": "T1",
+  "requests": [
+    {
+      "group": "CIRCUIT-A",
+      "requested_at": "2026-01-01T08:00:00Z",
+      "slots": [
+        "A1",
+        "A2"
+      ],
+      "old_meters": [
+        "OLD-A1",
+        "OLD-A2"
+      ]
+    },
+    {
+      "group": "CIRCUIT-B",
+      "requested_at": "2026-01-01T09:00:00Z",
+      "slots": [
+        "B"
+      ],
+      "old_meters": [
+        "OLD-B"
+      ]
+    },
+    {
+      "group": "CIRCUIT-C",
+      "requested_at": "2026-01-01T09:30:00Z",
+      "slots": [
+        "C"
+      ],
+      "old_meters": [
+        "OLD-C"
+      ]
+    }
+  ],
+  "contracts": [
+    "oldest_complete_circuit",
+    "max_completed_circuits"
+  ]
+}

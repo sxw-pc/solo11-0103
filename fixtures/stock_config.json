@@ -1,0 +1,86 @@
+{
+  "batch": [
+    {
+      "id": "replacement-round",
+      "start": "2026-01-01T00:00:00+00:00",
+      "end": "2026-02-01T00:00:00+00:00",
+      "window_hours": 24,
+      "spike_limit": 10000
+    }
+  ],
+  "slot": [
+    {
+      "id": "A1",
+      "batch_id": "replacement-round"
+    },
+    {
+      "id": "A2",
+      "batch_id": "replacement-round"
+    },
+    {
+      "id": "B",
+      "batch_id": "replacement-round"
+    },
+    {
+      "id": "C",
+      "batch_id": "replacement-round"
+    }
+  ],
+  "assignment": [
+    {
+      "slot": "A1",
+      "meter": "OLD-A1",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2027-01-01T00:00:00+00:00",
+      "capacity": 10000
+    },
+    {
+      "slot": "A2",
+      "meter": "OLD-A2",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2027-01-01T00:00:00+00:00",
+      "capacity": 10000
+    },
+    {
+      "slot": "B",
+      "meter": "OLD-B",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2027-01-01T00:00:00+00:00",
+      "capacity": 10000
+    },
+    {
+      "slot": "C",
+      "meter": "OLD-C",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2027-01-01T00:00:00+00:00",
+      "capacity": 10000
+    }
+  ],
+  "multiplier": [
+    {
+      "slot": "A1",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2027-01-01T00:00:00+00:00",
+      "value": 1
+    },
+    {
+      "slot": "A2",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2027-01-01T00:00:00+00:00",
+      "value": 1
+    },
+    {
+      "slot": "B",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2027-01-01T00:00:00+00:00",
+      "value": 1
+    },
+    {
+      "slot": "C",
+      "start": "2025-01-01T00:00:00+00:00",
+      "end": "2027-01-01T00:00:00+00:00",
+      "value": 1
+    }
+  ],
+  "replacement": []
+}
