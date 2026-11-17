@@ -1,0 +1,38 @@
+{
+  "packs": [
+    {
+      "id": "P1",
+      "device": "H1",
+      "slot": "A-01",
+      "reading_source_sha256": "9fe83545c36639902213c97f1b9d2567495e9a2e9acc5df4a2270b001eb65f64",
+      "chemistry": "LFP",
+      "mass_kg": 4,
+      "metal_kg": 3,
+      "fluid_kg": 1
+    },
+    {
+      "id": "P2",
+      "device": "H2",
+      "slot": "A-02",
+      "reading_source_sha256": "9fe83545c36639902213c97f1b9d2567495e9a2e9acc5df4a2270b001eb65f64",
+      "chemistry": "NMC",
+      "mass_kg": 5,
+      "metal_kg": 4,
+      "fluid_kg": 1
+    }
+  ],
+  "containers": [
+    {
+      "id": "C9",
+      "capacity_kg": 9
+    },
+    {
+      "id": "C5",
+      "capacity_kg": 5
+    }
+  ],
+  "contracts": [
+    "maximize_recovery",
+    "minimize_shipments"
+  ]
+}
