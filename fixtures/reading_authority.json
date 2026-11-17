@@ -1,0 +1,31 @@
+{
+  "device": "H1",
+  "sequence": 2,
+  "slot": "A-01",
+  "meter": "M1",
+  "policies": [
+    "first_capture_locked",
+    "attested_correction"
+  ],
+  "sources": [
+    {
+      "file": "capture_original.csv",
+      "sha256": "501d55b54a8673899ad222cf70727ccb80192fd48062751a9dcf61ed03ef46f1",
+      "role": "original",
+      "attestation_id": "CAP-001",
+      "authorized_by": "capture-device"
+    },
+    {
+      "file": "capture_correction.csv",
+      "sha256": "b06116a7435060a8f3dcd8408fba7fbe1b6711c3031bc8b2b9d4217ff6a5956e",
+      "role": "supervisor_correction",
+      "attestation_id": "COR-002",
+      "authorized_by": "field-supervisor"
+    }
+  ],
+  "correction": {
+    "supersedes": "CAP-001",
+    "reason": "manual scale verification",
+    "approved_at": "2026-02-02T08:00:00Z"
+  }
+}
