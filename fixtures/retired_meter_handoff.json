@@ -1,0 +1,28 @@
+{
+  "batch_id": "retire-round",
+  "slot": "A-01",
+  "old_meter": "M1",
+  "new_meter": "M2",
+  "replacement_at": "2026-01-15T00:00:00+00:00",
+  "seal_id": "SEAL-001",
+  "seal_file": "meter_seals/SEAL-001.txt",
+  "seal_sha256": "52e640be0cdf8a901db7672531de8cded89b837a65040442ee910f7a43178cf5",
+  "handoff_windows": {
+    "owner": [
+      "2026-02-02T08:00:00Z",
+      "2026-02-02T09:00:00Z"
+    ],
+    "lab": [
+      "2026-02-02T10:00:00Z",
+      "2026-02-02T11:00:00Z"
+    ]
+  },
+  "contracts": {
+    "return_to_owner": {
+      "consignee": "ASSET-OWNER"
+    },
+    "quarantine_at_lab": {
+      "consignee": "METROLOGY-LAB"
+    }
+  }
+}
