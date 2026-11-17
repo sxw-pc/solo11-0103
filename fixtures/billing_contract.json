@@ -1,0 +1,29 @@
+{
+  "batch_id": "period-bill",
+  "main_slot": "MAIN",
+  "tenants": [
+    {
+      "id": "A",
+      "slot": "TEN-A",
+      "subscribed_capacity": 1
+    },
+    {
+      "id": "B",
+      "slot": "TEN-B",
+      "subscribed_capacity": 3
+    }
+  ],
+  "unit_price_cents": 100,
+  "allocation_contracts": [
+    "usage_share",
+    "capacity_share"
+  ],
+  "issued_invoice": {
+    "invoice_id": "INV-001",
+    "period": "period-bill",
+    "tenant_total_cents": {
+      "A": 6500,
+      "B": 3500
+    }
+  }
+}
