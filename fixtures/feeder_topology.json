@@ -17,6 +17,7 @@
       "child": "D"
     }
   ],
+  "max_meter_error_units": 5,
   "profiles": {
     "strict_balance": {
       "max_line_loss": 0
