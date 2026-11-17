@@ -1,0 +1,25 @@
+{
+  "target_version": "2.0",
+  "devices": [
+    {
+      "id": "H1",
+      "cell": "North",
+      "current_version": "1.0",
+      "reading_source_sha256": "b95f750c83d656906f1d4feaca5c5038ee70f1520a42e6fec1065664d167355e"
+    },
+    {
+      "id": "H2",
+      "cell": "North",
+      "current_version": "1.0",
+      "reading_source_sha256": "b95f750c83d656906f1d4feaca5c5038ee70f1520a42e6fec1065664d167355e",
+      "failure": "commit_then_ack_lost"
+    },
+    {
+      "id": "H3",
+      "cell": "South",
+      "current_version": "1.0",
+      "reading_source_sha256": "b95f750c83d656906f1d4feaca5c5038ee70f1520a42e6fec1065664d167355e",
+      "failure": "reject"
+    }
+  ]
+}
