@@ -1,0 +1,33 @@
+{
+  "audience": "external-contractor",
+  "metric": "H2_terminal_slot_count",
+  "universe": [
+    "A1",
+    "A2",
+    "A3",
+    "A4"
+  ],
+  "previous_release": {
+    "id": "REL-01",
+    "slots": [
+      "A1",
+      "A2"
+    ],
+    "count": 1
+  },
+  "new_request": {
+    "id": "REQ-02",
+    "slots": [
+      "A1",
+      "A2",
+      "A3"
+    ]
+  },
+  "allowed_expansion": [
+    "A4"
+  ],
+  "policies": [
+    "deny_unsafe",
+    "minimum_safe_coarsening"
+  ]
+}
