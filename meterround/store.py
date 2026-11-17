@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS issue(id INTEGER PRIMARY KEY,code TEXT NOT NULL,subje
 CREATE TABLE IF NOT EXISTS decision(slot TEXT PRIMARY KEY REFERENCES slot(id),status TEXT NOT NULL,usage REAL,detail TEXT NOT NULL,rule_version TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS evidence(id INTEGER PRIMARY KEY, reading_id INTEGER NOT NULL REFERENCES reading(id), source_sha256 TEXT NOT NULL, payload_sha256 TEXT NOT NULL, role TEXT NOT NULL, UNIQUE(reading_id,role));
 CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY, status TEXT NOT NULL CHECK(status IN ('待接收','已校验','待核','已判定','作废')), started_at TEXT NOT NULL, ended_at TEXT);
+CREATE TABLE IF NOT EXISTS dr_case(id TEXT PRIMARY KEY,payload TEXT NOT NULL,digest TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS dr_zone(case_id TEXT NOT NULL REFERENCES dr_case(id),id TEXT NOT NULL,temperature REAL NOT NULL,period INTEGER NOT NULL,PRIMARY KEY(case_id,id));
+CREATE TABLE IF NOT EXISTS dr_action(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES dr_case(id),period INTEGER NOT NULL,loads TEXT NOT NULL,result TEXT NOT NULL);
 """
 def connect(path):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)

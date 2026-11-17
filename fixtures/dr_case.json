@@ -1,0 +1,51 @@
+{
+  "zones": [
+    {
+      "id": "A",
+      "device": "H1",
+      "slot": "A-01",
+      "reading_source_sha256": "27feea1484717c00f10a346c723643e6d4db3385f57b57e10a9569d258be5de9",
+      "initial_temperature": 20,
+      "minimum_temperature": 16,
+      "maximum_temperature": 22,
+      "power_kw": 2,
+      "cooling": 2
+    },
+    {
+      "id": "B",
+      "device": "H2",
+      "slot": "B-01",
+      "reading_source_sha256": "27feea1484717c00f10a346c723643e6d4db3385f57b57e10a9569d258be5de9",
+      "initial_temperature": 20,
+      "minimum_temperature": 16,
+      "maximum_temperature": 21,
+      "power_kw": 1,
+      "cooling": 2
+    }
+  ],
+  "periods": [
+    {
+      "grid_cap_kw": 2,
+      "price_cents_per_kwh": 100,
+      "heat_gain": {
+        "A": 3,
+        "B": 2
+      }
+    },
+    {
+      "grid_cap_kw": 2,
+      "price_cents_per_kwh": 1000,
+      "heat_gain": {
+        "A": 3,
+        "B": 2
+      }
+    }
+  ],
+  "max_total_exposure": 6,
+  "minimum_shed_kw_each_period": 1,
+  "contracts": [
+    "min_energy",
+    "min_max_zone_exposure"
+  ],
+  "max_zone_exposure": 4
+}
