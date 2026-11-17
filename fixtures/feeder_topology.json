@@ -1,0 +1,28 @@
+{
+  "edges": [
+    {
+      "parent": "F",
+      "child": "A"
+    },
+    {
+      "parent": "F",
+      "child": "B"
+    },
+    {
+      "parent": "A",
+      "child": "C"
+    },
+    {
+      "parent": "A",
+      "child": "D"
+    }
+  ],
+  "profiles": {
+    "strict_balance": {
+      "max_line_loss": 0
+    },
+    "bounded_loss": {
+      "max_line_loss": 5
+    }
+  }
+}
