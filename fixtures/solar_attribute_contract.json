@@ -1,0 +1,17 @@
+{
+  "batch_id": "solar-period",
+  "generation_slot": "PV-GEN",
+  "self_use_slot": "PV-SELF",
+  "export_slot": "PV-EXPORT",
+  "unit_per_certificate": 10,
+  "contract_file": "solar_contracts/ATTRIBUTE-001.txt",
+  "contract_sha256": "8b2270f394208e742c8406f95cb93f7d0126a56d3508dc13ea978393b1c8ecc2",
+  "contracts": {
+    "gross_generation_title": {
+      "holder": "SITE-OPERATOR"
+    },
+    "net_export_title": {
+      "holder": "GRID-BUYER"
+    }
+  }
+}
