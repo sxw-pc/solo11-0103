@@ -14,8 +14,51 @@ CREATE TABLE IF NOT EXISTS issue(id INTEGER PRIMARY KEY,code TEXT NOT NULL,subje
 CREATE TABLE IF NOT EXISTS decision(slot TEXT PRIMARY KEY REFERENCES slot(id),status TEXT NOT NULL,usage REAL,detail TEXT NOT NULL,rule_version TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS evidence(id INTEGER PRIMARY KEY, reading_id INTEGER NOT NULL REFERENCES reading(id), source_sha256 TEXT NOT NULL, payload_sha256 TEXT NOT NULL, role TEXT NOT NULL, UNIQUE(reading_id,role));
 CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY, status TEXT NOT NULL CHECK(status IN ('待接收','已校验','待核','已判定','作废')), started_at TEXT NOT NULL, ended_at TEXT);
+
+-- 外部披露台账。每一受众独立保存已发布的表位集合、H2 覆盖数和文件摘要。
+-- content 是唯一的交付字节来源；pending 行在文件原子替换前已经提交，
+-- 因此中断后可以据此重放，不会出现“文件已交付但没有台账”的窗口。
+CREATE TABLE IF NOT EXISTS disclosure_publication(
+    id INTEGER PRIMARY KEY,
+    audience TEXT NOT NULL,
+    request_id TEXT NOT NULL,
+    publication_id TEXT NOT NULL,
+    policy TEXT NOT NULL,
+    batch_id TEXT NOT NULL,
+    version TEXT NOT NULL,
+    slots TEXT NOT NULL,
+    h2_count INTEGER NOT NULL CHECK(h2_count>=0),
+    file_path TEXT NOT NULL DEFAULT '',
+    file_sha256 TEXT NOT NULL,
+    content TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('legacy','pending','published')),
+    created_at TEXT NOT NULL,
+    published_at TEXT,
+    UNIQUE(audience, request_id),
+    -- 发布 ID 只在受众内唯一：不同受众的历史发布可以用同一个 ID，
+    -- 两边的集合/数值/摘要必须各自独立落账。
+    UNIQUE(audience, publication_id)
+);
+CREATE INDEX IF NOT EXISTS idx_disclosure_audience ON disclosure_publication(audience,status);
+
+-- 拒绝只进入内部审计台账，绝不参与外部受众可见的联立等式。
+CREATE TABLE IF NOT EXISTS disclosure_refusal(
+    id INTEGER PRIMARY KEY,
+    audience TEXT NOT NULL,
+    request_id TEXT NOT NULL,
+    policy TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    detail TEXT NOT NULL DEFAULT '{}',
+    requested_slots TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE(audience, request_id, policy)
+);
 """
+
 def connect(path):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
-    db=sqlite3.connect(path);db.row_factory=sqlite3.Row;db.executescript(SCHEMA)
+    db=sqlite3.connect(path,timeout=30.0);db.row_factory=sqlite3.Row
+    db.execute('PRAGMA foreign_keys=ON')
+    db.execute('PRAGMA busy_timeout=30000')
+    db.executescript(SCHEMA)
     return db
