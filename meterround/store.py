@@ -19,7 +19,168 @@ CREATE TABLE IF NOT EXISTS battery_pack(id TEXT PRIMARY KEY,case_id TEXT NOT NUL
 CREATE TABLE IF NOT EXISTS battery_container(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES battery_case(id),capacity_kg REAL NOT NULL,location TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS battery_operation(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES battery_case(id),kind TEXT NOT NULL,result TEXT NOT NULL);
 """
+
+# Additive migrations.  SQLite cannot add several columns in one statement, and
+# older databases created before the battery campaign existed must keep their
+# evidence rows intact.  Every addition is therefore guarded by PRAGMA
+# table_info and applied only once.
+MIGRATION_COLUMNS = {
+    'battery_case': [
+        ('payload_sha256', 'TEXT'),
+    ],
+    'battery_pack': [
+        ('device', 'TEXT'),
+        ('slot', 'TEXT'),
+        ('source_sha256', 'TEXT'),
+        ('reading_id', 'INTEGER'),
+        ('isolated_reason', 'TEXT'),
+    ],
+    'battery_container': [
+        ('route', 'TEXT'),
+        ('shipped_at', 'TEXT'),
+        ('processed_at', 'TEXT'),
+        ('isolation_reason', 'TEXT'),
+        ('last_operation_id', 'TEXT'),
+    ],
+    'battery_operation': [
+        ('campaign_id', 'TEXT'),
+        ('intent', 'TEXT'),
+        ('status', "TEXT NOT NULL DEFAULT 'done'"),
+        ('error', 'TEXT'),
+        ('started_at', 'TEXT'),
+        ('finished_at', 'TEXT'),
+    ],
+}
+
+MIGRATION_TABLES = """
+CREATE TABLE IF NOT EXISTS battery_pack_source(
+    pack_id TEXT PRIMARY KEY REFERENCES battery_pack(id) ON DELETE CASCADE,
+    case_id TEXT NOT NULL,
+    device TEXT NOT NULL,
+    slot TEXT NOT NULL,
+    source_sha256 TEXT NOT NULL,
+    first_reading_id INTEGER REFERENCES reading(id),
+    first_reading_sha256 TEXT NOT NULL,
+    reading_count INTEGER NOT NULL,
+    verified_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS battery_pack_evidence(
+    pack_id TEXT NOT NULL REFERENCES battery_pack(id) ON DELETE CASCADE,
+    reading_id INTEGER NOT NULL REFERENCES reading(id),
+    evidence_id INTEGER NOT NULL REFERENCES evidence(id),
+    source_sha256 TEXT NOT NULL,
+    payload_sha256 TEXT NOT NULL,
+    PRIMARY KEY(pack_id,reading_id)
+);
+CREATE TABLE IF NOT EXISTS battery_plan(
+    plan_id TEXT PRIMARY KEY,
+    case_id TEXT NOT NULL REFERENCES battery_case(id),
+    contract TEXT NOT NULL,
+    digest TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    status TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS battery_plan_box(
+    plan_id TEXT NOT NULL REFERENCES battery_plan(plan_id) ON DELETE CASCADE,
+    box_no INTEGER NOT NULL,
+    container_id TEXT NOT NULL,
+    capacity_kg REAL NOT NULL,
+    pack_ids TEXT NOT NULL,
+    mass_kg REAL NOT NULL,
+    metal_kg REAL NOT NULL,
+    fluid_kg REAL NOT NULL,
+    chemistry TEXT NOT NULL,
+    route TEXT NOT NULL,
+    PRIMARY KEY(plan_id,box_no)
+);
+CREATE TABLE IF NOT EXISTS battery_campaign(
+    campaign_id TEXT PRIMARY KEY,
+    case_id TEXT NOT NULL REFERENCES battery_case(id),
+    contract TEXT NOT NULL,
+    plan_id TEXT,
+    status TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    reason TEXT,
+    result TEXT
+);
+CREATE TABLE IF NOT EXISTS battery_campaign_plan(
+    campaign_id TEXT NOT NULL REFERENCES battery_campaign(campaign_id) ON DELETE CASCADE,
+    plan_id TEXT NOT NULL REFERENCES battery_plan(plan_id),
+    seq INTEGER NOT NULL,
+    PRIMARY KEY(campaign_id,plan_id)
+);
+CREATE TABLE IF NOT EXISTS battery_step(
+    operation_id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    case_id TEXT NOT NULL,
+    plan_id TEXT,
+    box_no INTEGER,
+    kind TEXT NOT NULL,
+    container_id TEXT,
+    pack_id TEXT,
+    route TEXT,
+    intent TEXT NOT NULL,
+    status TEXT NOT NULL,
+    result TEXT,
+    error TEXT,
+    attempts INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS battery_pack_result(
+    pack_id TEXT PRIMARY KEY REFERENCES battery_pack(id) ON DELETE CASCADE,
+    case_id TEXT NOT NULL,
+    campaign_id TEXT,
+    container_id TEXT NOT NULL,
+    route TEXT NOT NULL,
+    recovered_kg REAL NOT NULL,
+    neutralized_kg REAL NOT NULL,
+    operation_id TEXT NOT NULL,
+    processed_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS battery_container_result(
+    container_id TEXT PRIMARY KEY REFERENCES battery_container(id) ON DELETE CASCADE,
+    case_id TEXT NOT NULL,
+    campaign_id TEXT,
+    route TEXT NOT NULL,
+    mass_kg REAL NOT NULL,
+    recovered_kg REAL NOT NULL,
+    neutralized_kg REAL NOT NULL,
+    pack_count INTEGER NOT NULL,
+    operation_id TEXT NOT NULL,
+    processed_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS battery_isolation(
+    id INTEGER PRIMARY KEY,
+    case_id TEXT NOT NULL,
+    scope TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    operation_id TEXT,
+    created_at TEXT NOT NULL,
+    UNIQUE(case_id,scope,subject,reason)
+);
+CREATE INDEX IF NOT EXISTS battery_pack_container_idx ON battery_pack(container);
+CREATE INDEX IF NOT EXISTS battery_pack_case_idx ON battery_pack(case_id);
+CREATE INDEX IF NOT EXISTS battery_step_campaign_idx ON battery_step(campaign_id);
+CREATE INDEX IF NOT EXISTS battery_operation_case_idx ON battery_operation(case_id);
+CREATE INDEX IF NOT EXISTS battery_isolation_case_idx ON battery_isolation(case_id);
+"""
+
+
+def _migrate(db):
+    for table, columns in MIGRATION_COLUMNS.items():
+        existing = {row[1] for row in db.execute(f'PRAGMA table_info({table})')}
+        for name, declaration in columns:
+            if name not in existing:
+                db.execute(f'ALTER TABLE {table} ADD COLUMN {name} {declaration}')
+    db.executescript(MIGRATION_TABLES)
+
+
 def connect(path):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
     db=sqlite3.connect(path);db.row_factory=sqlite3.Row;db.executescript(SCHEMA)
+    _migrate(db)
     return db
