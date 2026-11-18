@@ -14,6 +14,13 @@ CREATE TABLE IF NOT EXISTS issue(id INTEGER PRIMARY KEY,code TEXT NOT NULL,subje
 CREATE TABLE IF NOT EXISTS decision(slot TEXT PRIMARY KEY REFERENCES slot(id),status TEXT NOT NULL,usage REAL,detail TEXT NOT NULL,rule_version TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS evidence(id INTEGER PRIMARY KEY, reading_id INTEGER NOT NULL REFERENCES reading(id), source_sha256 TEXT NOT NULL, payload_sha256 TEXT NOT NULL, role TEXT NOT NULL, UNIQUE(reading_id,role));
 CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY, status TEXT NOT NULL CHECK(status IN ('待接收','已校验','待核','已判定','作废')), started_at TEXT NOT NULL, ended_at TEXT);
+CREATE TABLE IF NOT EXISTS retired_meter(id INTEGER PRIMARY KEY,slot TEXT NOT NULL,old_meter TEXT NOT NULL UNIQUE,new_meter TEXT NOT NULL,replacement_at TEXT NOT NULL,seal_id TEXT NOT NULL UNIQUE,seal_sha256 TEXT NOT NULL,seal_file TEXT NOT NULL,created_at TEXT NOT NULL,created_by TEXT NOT NULL,source TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS custody_event(id INTEGER PRIMARY KEY,retired_id INTEGER NOT NULL REFERENCES retired_meter(id),seq INTEGER NOT NULL,action TEXT NOT NULL,state_from TEXT,state_to TEXT NOT NULL,actor TEXT NOT NULL,occurred_at TEXT NOT NULL,source TEXT NOT NULL,request_id TEXT NOT NULL UNIQUE,detail TEXT NOT NULL,UNIQUE(retired_id,seq));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_custody_signoff_once ON custody_event(retired_id) WHERE action='signoff';
+CREATE TABLE IF NOT EXISTS handoff_order(id TEXT PRIMARY KEY,retired_id INTEGER NOT NULL REFERENCES retired_meter(id),contract TEXT NOT NULL,consignee TEXT NOT NULL,window_start TEXT NOT NULL,window_end TEXT NOT NULL,seal_id TEXT NOT NULL,seal_sha256 TEXT NOT NULL,status TEXT NOT NULL CHECK(status IN ('待交接','已签收','已作废')),issued_at TEXT NOT NULL,issued_by TEXT NOT NULL,source TEXT NOT NULL,UNIQUE(retired_id,contract));
+CREATE TABLE IF NOT EXISTS handoff_credential(id INTEGER PRIMARY KEY,order_id TEXT NOT NULL REFERENCES handoff_order(id),retired_id INTEGER NOT NULL REFERENCES retired_meter(id),direction TEXT NOT NULL CHECK(direction IN ('dispatch','receipt')),actor TEXT NOT NULL,seal_id TEXT NOT NULL,seal_sha256 TEXT NOT NULL,arrived_at TEXT NOT NULL,request_id TEXT NOT NULL UNIQUE,UNIQUE(order_id,direction));
+CREATE TABLE IF NOT EXISTS custody_conflict(id INTEGER PRIMARY KEY,retired_id INTEGER NOT NULL REFERENCES retired_meter(id),order_id TEXT,request_id TEXT NOT NULL,actor TEXT NOT NULL,contract TEXT,reason TEXT NOT NULL,occurred_at TEXT NOT NULL,detail TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS custody_request(request_id TEXT PRIMARY KEY,retired_id INTEGER,operation TEXT NOT NULL,ok INTEGER NOT NULL,result TEXT NOT NULL,recorded_at TEXT NOT NULL);
 """
 def connect(path):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)

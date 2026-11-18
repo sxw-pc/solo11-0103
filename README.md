@@ -12,6 +12,15 @@ Python 3.11+，运行期仅标准库。`python -m pip install -e .` 安装；`py
 
 运行台账 Run 与业务判定在同一事务内写入；Evidence 逐条关联读数、来源哈希与载荷哈希。导入失败时整次事务回滚。
 
+## 退役旧表保管
+
+换表结算后旧表仍是实物资产。`meterround/custody.py` 以只追加流水管理保管状态机：已拆下 → 已封存 → 待交接 → 已签收，每步记录操作身份、时间、来源、请求号与前状态。建退役资产前必须确认 replacement 中旧表在指定时刻被新表取代，且不存在仍在生效的旧表 assignment；封存时重新计算真实封条文件字节的 SHA-256，与交接清单和资产绑定比对，封条号与旧表序列号唯一绑定。无封条、封条被改、错误序列号、时窗外或跳步均不产生最终转移。
+
+发交接单与接收方签收是两步：仓管 dispatch 凭据与接收方 receipt 凭据必须绑定同一旧表、封条和交接单，receipt 须在合同指定时窗内到达；双向凭据闭合前实物始终由仓管 WAREHOUSE 持有，收件方名称不等于保管权变更。相同请求号重放幂等；两个接收方并发竞领时只有一个签收事务提交，败方留 custody_conflict 冲突记录。两种合同产生不同实物责任：`return_to_owner` 闭合后占有与处置权归 ASSET-OWNER，原仓管不得再送检；`quarantine_at_lab` 闭合后归 METROLOGY-LAB 并加检定隔离，业主只获暂存证明尚不能领取。保管流水不读取或改写 replacement、reading、source、evidence、decision。
+
+命令：`retire`、`seal`、`handoff-issue`、`handoff-sign`（`--direction dispatch|receipt`）与 `custody-view`，均以 `--db --handoff --fixtures-dir --request-id` 离线运行，失败以稳定原因码和非零退出码返回。
+
+
 ## 判定
 
 同一表计计算读数差；接近量程末端跳到零附近才认为回卷，否则待核。换表需有旧表末读、新表初读和生效时间。倍率按读数时间区间拆段，缺口使结论待核。零耗、异常突增、缺读或超出抄表时窗也待核。报告保存分段算式和证据读数 ID。当前仅处理单表位结算，暂不引入计价、分摊或遥测。
