@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY, status TEXT NOT NULL CHEC
 CREATE TABLE IF NOT EXISTS dr_case(id TEXT PRIMARY KEY,payload TEXT NOT NULL,digest TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS dr_zone(case_id TEXT NOT NULL REFERENCES dr_case(id),id TEXT NOT NULL,temperature REAL NOT NULL,period INTEGER NOT NULL,PRIMARY KEY(case_id,id));
 CREATE TABLE IF NOT EXISTS dr_action(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES dr_case(id),period INTEGER NOT NULL,loads TEXT NOT NULL,result TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS dr_plan(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES dr_case(id),contract TEXT NOT NULL,start_period INTEGER NOT NULL,status TEXT NOT NULL,payload TEXT NOT NULL,digest TEXT NOT NULL,created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS dr_command(id TEXT PRIMARY KEY,plan_id TEXT NOT NULL REFERENCES dr_plan(id),period INTEGER NOT NULL,loads TEXT NOT NULL,status TEXT NOT NULL,action_id TEXT,detail TEXT NOT NULL,UNIQUE(plan_id,period));
+CREATE TABLE IF NOT EXISTS dr_feedback(id INTEGER PRIMARY KEY AUTOINCREMENT,case_id TEXT NOT NULL REFERENCES dr_case(id),period INTEGER NOT NULL,zone_id TEXT NOT NULL,observed_temperature REAL NOT NULL,source_sha256 TEXT NOT NULL,at TEXT NOT NULL,status TEXT NOT NULL,detail TEXT NOT NULL);
 """
 def connect(path):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
