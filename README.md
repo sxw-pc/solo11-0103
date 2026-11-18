@@ -15,3 +15,22 @@ Python 3.11+，运行期仅标准库。`python -m pip install -e .` 安装；`py
 ## 判定
 
 同一表计计算读数差；接近量程末端跳到零附近才认为回卷，否则待核。换表需有旧表末读、新表初读和生效时间。倍率按读数时间区间拆段，缺口使结论待核。零耗、异常突增、缺读或超出抄表时窗也待核。报告保存分段算式和证据读数 ID。当前仅处理单表位结算，暂不引入计价、分摊或遥测。
+
+## 绿色属性凭证
+
+`meterround/attributes.py` 把可结算用量换算为可转让的绿色属性凭证，台账落在 `attribute_*` 表。发行前必须同时满足：三个表位（发电、自用、上网）同批次/期间、decision 均可结算、总发电严格等于自用+上网；缺读、待核、逆流或闭合差额一律拒绝发行，绝不用不完整证据猜可交易凭证。
+
+```
+python -m meterround attribute-issue  --db D --config fixtures/solar_attribute_contract.json --title gross_generation_title
+python -m meterround attribute-reissue --db D --config ... --title ... [--reason evidence_revised]
+python -m meterround attribute-revoke  --db D --config ... [--reason ...]
+python -m meterround attribute-transfer --db D --certificate RC-... --to HOLDER
+python -m meterround attribute-recall-done --db D --certificate RC-...
+python -m meterround attribute-ledger --db D [--batch B] [--summary]
+```
+
+- 合同文件字节以 SHA-256 冻结；权属基础另冻结 decision/rule_version 与 reading/evidence/source 摘要。同一合同与证据快照重跑返回 `unchanged`，不新发。
+- `gross_generation_title` 把全部发电归场站运营方（样本 100 单位 → 10 张）；`net_export_title` 只把上网电量归购电方（样本 60 单位 → 6 张，自用不归买方）。同一批次只能有一种有效权属，`ux_attribute_issuance_active` 保证并发申请只有一方成功。
+- 未满一张的余量按同一合同/场站/权属/持有人链记入 `attribute_carry`，只结转、不四舍五入，来源期间必须早于本期。
+- 证据修订时 `reissue` 在单个事务里先全量撤销旧发行再按新基础发行；旧证已转让的转为 `attribute_recall` 召回任务，保留原持有人，绝不静默换主或复用旧有效 ID。
+- 本模块不修改 `source`/`reading`/`evidence`/`decision`。
