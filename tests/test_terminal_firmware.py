@@ -2,21 +2,29 @@ from pathlib import Path
 
 import pytest
 
-from meterround.__main__ import initialize
+from meterround.__main__ import initialize, main
 from meterround.ingest import ingest
 from meterround.rules import evaluate
-from meterround.terminal_firmware import invoke, register, state
+from meterround.store import connect
+from meterround.terminal_firmware import (
+    firmware_report,
+    invoke,
+    register,
+    rollout,
+    state,
+)
 
 
 FIX = Path(__file__).resolve().parent.parent / 'fixtures'
+SOURCE_SHA = 'b95f750c83d656906f1d4feaca5c5038ee70f1520a42e6fec1065664d167355e'
 
 
-def prepared(tmp_path):
+def prepared(tmp_path, case=None):
     db = tmp_path / 'meter.db'
     initialize(db, FIX / 'terminal_config.json')
     assert ingest(FIX / 'terminal_readings.csv', db)['imported'] == 6
     assert set(evaluate(db).values()) == {'可结算'}
-    assert register(db, 'upgrade-1', FIX / 'terminal_firmware_case.json')['devices'] == 3
+    assert register(db, 'upgrade-1', case or FIX / 'terminal_firmware_case.json')['devices'] == 3
     return db
 
 

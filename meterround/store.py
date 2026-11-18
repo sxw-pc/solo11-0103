@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS run(id INTEGER PRIMARY KEY, status TEXT NOT NULL CHEC
 CREATE TABLE IF NOT EXISTS terminal_firmware_device(id TEXT PRIMARY KEY,cell TEXT NOT NULL,version TEXT NOT NULL,revision INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS terminal_firmware_case(id TEXT PRIMARY KEY,payload TEXT NOT NULL,digest TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS terminal_firmware_operation(id TEXT PRIMARY KEY,device TEXT NOT NULL,command TEXT NOT NULL,result TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS terminal_firmware_round(id TEXT PRIMARY KEY,case_id TEXT NOT NULL REFERENCES terminal_firmware_case(id),contract TEXT NOT NULL CHECK(contract IN ('fleet_atomic','cell_isolated')),status TEXT NOT NULL,created_at TEXT NOT NULL,ended_at TEXT,detail TEXT NOT NULL DEFAULT '{}');
+CREATE TABLE IF NOT EXISTS terminal_firmware_step(id INTEGER PRIMARY KEY,round_id TEXT NOT NULL REFERENCES terminal_firmware_round(id),device TEXT NOT NULL,seq INTEGER NOT NULL,phase TEXT NOT NULL CHECK(phase IN ('upgrade','rollback')),cell TEXT NOT NULL,command TEXT NOT NULL CHECK(command IN ('install','rollback')),version TEXT NOT NULL,operation_id TEXT NOT NULL UNIQUE,expected_revision INTEGER NOT NULL,status TEXT NOT NULL,response TEXT,verified TEXT,UNIQUE(round_id,device,phase));
+CREATE TABLE IF NOT EXISTS terminal_firmware_journal(id INTEGER PRIMARY KEY,round_id TEXT NOT NULL,device TEXT,event TEXT NOT NULL,detail TEXT NOT NULL,at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 """
 def connect(path):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
